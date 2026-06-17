@@ -55,12 +55,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.neilmosca.basicandroiddatapersistence.ui.theme.BasicAndroidDataPersistenceTheme
+import io.realm.kotlin.Realm
+import io.realm.kotlin.RealmConfiguration
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val movieRepository = MovieRepository.create()
+
+        val config = RealmConfiguration.Builder(schema = setOf(Movie::class))
+            .name("movie_database.realm")
+            .build()
+
+        val realm: Realm = Realm.open(config)
+
+        val movieDao = MovieDaoImpl(realm = realm)
+        val movieRepository = MovieRepository(movieDao = movieDao)
         val movieViewModel = MovieViewModel(movieRepository)
 
         enableEdgeToEdge()
@@ -177,22 +187,22 @@ fun MovieScreenContent(
                     if (movieToEdit == null) {
                         onIntent(
                             MovieIntent.CreateMovie(
-                                Movie(
-                                    title = title,
-                                    genre = genre,
-                                    year = year
-                                )
+                                Movie().apply {
+                                    this.title = title
+                                    this.genre = genre
+                                    this.year = year
+                                }
                             )
                         )
                     } else {
                         onIntent(
                             MovieIntent.UpdateMovie(
-                                movieToEdit!!.id,
-                                movieToEdit!!.copy(
-                                    title = title,
-                                    genre = genre,
-                                    year = year
-                                )
+                                Movie().apply {
+                                    this.id = movieToEdit!!.id
+                                    this.title = title
+                                    this.genre = genre
+                                    this.year = year
+                                }
                             )
                         )
                     }
@@ -355,9 +365,24 @@ fun MovieItem(
 @Preview
 fun MovieScreenContentPreview() {
     val mockMovies = listOf(
-        Movie(id = "1", title = "Inception", genre = "Sci-Fi", year = 2010),
-        Movie(id = "2", title = "The Dark Knight", genre = "Action", year = 2008),
-        Movie(id = "3", title = "Interstellar", genre = "Sci-Fi", year = 2014)
+        Movie().apply {
+            id = 1
+            title = "Inception"
+            genre = "Sci-Fi"
+            year = 2010
+        },
+        Movie().apply {
+            id = 2
+            title = "The Dark Knight"
+            genre = "Action"
+            year = 2012
+        },
+        Movie().apply {
+            id = 3
+            title = "Interstellar"
+            genre = "Sci-fi"
+            year = 2014
+        }
     )
 
     BasicAndroidDataPersistenceTheme() {

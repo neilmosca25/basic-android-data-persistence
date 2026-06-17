@@ -1,8 +1,16 @@
 package com.neilmosca.basicandroiddatapersistence
 
-data class Movie(
-    val id: String = "",
-    val title: String,
-    val genre: String,
-    val year: Int
-)
+import io.realm.kotlin.types.RealmObject
+import io.realm.kotlin.types.annotations.PrimaryKey
+
+class Movie() : RealmObject {
+    @PrimaryKey
+    var id: Long = 0
+    var title: String = ""
+    var genre: String = ""
+    var year: Int = 0
+
+    override fun toString(): String {
+        return "id: $id, title: $title, genre: $genre, year: $year"
+    }
+}

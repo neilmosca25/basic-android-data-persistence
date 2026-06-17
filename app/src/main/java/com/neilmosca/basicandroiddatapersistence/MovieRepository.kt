@@ -1,53 +1,22 @@
 package com.neilmosca.basicandroiddatapersistence
 
-import java.util.UUID
+class MovieRepository (private val movieDao: MovieDao) {
 
-class MovieRepository private constructor() {
+    suspend fun getMovies(): List<Movie> = movieDao.getMovies()
 
-    // In-memory list to store movies
-    private val movies = mutableListOf(
-        Movie(id = UUID.randomUUID().toString(), title = "Inception", genre = "Sci-Fi", year = 2010),
-        Movie(id = UUID.randomUUID().toString(), title = "Interstellar", genre = "Sci-Fi", year = 2014),
-        Movie(id = UUID.randomUUID().toString(), title = "The Dark Knight", genre = "Action", year = 2008)
-    )
-
-    fun getMovies(): List<Movie> = movies.toList()
-
-    fun getMovie(id: String): Movie {
-        return movies.find { it.id == id } ?: throw Exception("Movie not found")
+    suspend fun getMovie(id: Long): Movie? {
+        return movieDao.getMovie(id = id)
     }
 
-    fun createMovie(movie: Movie): Movie {
-        val newMovie = movie.copy(id = UUID.randomUUID().toString())
-        movies.add(newMovie)
-        return newMovie
+    suspend fun createMovie(movie: Movie): Boolean {
+        return movieDao.createMovie(movie = movie)
     }
 
-    suspend fun updateMovie(id: String, movie: Movie): Movie {
-        val index = movies.indexOfFirst { it.id == id }
-        if (index != -1) {
-            movies[index] = movie.copy(id = id)
-            return movies[index]
-        }
-        throw Exception("Movie not found")
+    suspend fun updateMovie(movie: Movie): Boolean {
+        return movieDao.updateMovie(movie = movie)
     }
 
-    suspend fun deleteMovie(id: String): MovieResponse {
-        val removed = movies.removeIf { it.id == id }
-        return MovieResponse(isSuccessful = removed)
-    }
-
-    // Helper class to match the 'isSuccessful' check in your ViewModel
-    data class MovieResponse(val isSuccessful: Boolean)
-
-    companion object {
-        private var instance: MovieRepository? = null
-
-        fun create(): MovieRepository {
-            if (instance == null) {
-                instance = MovieRepository()
-            }
-            return instance!!
-        }
+    suspend fun deleteMovie(id: Long): Boolean {
+        return movieDao.deleteMovie(id = id)
     }
 }

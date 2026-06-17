@@ -6,11 +6,11 @@ sealed class MovieIntent {
 
     // Read
     object GetMovies : MovieIntent()
-    data class GetMovie(val id: String) : MovieIntent()
+    data class GetMovie(val id: Long) : MovieIntent()
 
     // Update
-    data class UpdateMovie(val id: String, val movie: Movie) : MovieIntent()
+    data class UpdateMovie(val movie: Movie) : MovieIntent()
 
     // Delete
-    data class DeleteMovie(val id: String) : MovieIntent()
+    data class DeleteMovie(val id: Long) : MovieIntent()
 }

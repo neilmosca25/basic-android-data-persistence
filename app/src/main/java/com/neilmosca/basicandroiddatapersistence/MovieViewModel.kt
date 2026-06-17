@@ -17,7 +17,7 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
             is MovieIntent.GetMovies -> getMovies()
             is MovieIntent.GetMovie -> getMovie(intent.id)
             is MovieIntent.CreateMovie -> createMovie(intent.movie)
-            is MovieIntent.UpdateMovie -> updateMovie(intent.id, intent.movie)
+            is MovieIntent.UpdateMovie -> updateMovie(intent.movie)
             is MovieIntent.DeleteMovie -> deleteMovie(intent.id)
         }
     }
@@ -39,7 +39,7 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
         }
     }
 
-    private fun getMovie(id: String) {
+    private fun getMovie(id: Long) {
         viewModelScope.launch {
             try {
                 val movie = movieRepository.getMovie(id)
@@ -53,30 +53,30 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
     private fun createMovie(movie: Movie) {
         viewModelScope.launch {
             try {
-                val createdMovie = movieRepository.createMovie(movie)
-                if (createdMovie.id.isNotEmpty()) getMovies()
+                val isSuccessful = movieRepository.createMovie(movie)
+                if (isSuccessful) getMovies()
             } catch (e: Exception) {
                 _viewState.update { it.copy(hasError = true) }
             }
         }
     }
 
-    private fun updateMovie(id: String, movie: Movie) {
+    private fun updateMovie(movie: Movie) {
         viewModelScope.launch {
             try {
-                val updatedMovie = movieRepository.updateMovie(id, movie)
-                if (updatedMovie.id.isNotEmpty()) getMovies()
+                val isSuccessful = movieRepository.updateMovie(movie)
+                if (isSuccessful) getMovies()
             } catch (e: Exception) {
                 _viewState.update { it.copy(hasError = true) }
             }
         }
     }
 
-    private fun deleteMovie(id: String) {
+    private fun deleteMovie(id: Long) {
         viewModelScope.launch {
             try {
-                val response = movieRepository.deleteMovie(id)
-                if (response.isSuccessful) {
+                val isSuccessful = movieRepository.deleteMovie(id)
+                if (isSuccessful) {
                     getMovies()
                 } else {
                     _viewState.update { it.copy(hasError = true) }
