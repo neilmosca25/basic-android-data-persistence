@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel() {
+class MovieViewModel(private val repository: MovieRepository) : ViewModel() {
 
     private val _viewState = MutableStateFlow(MovieViewState())
     val viewState: StateFlow<MovieViewState> = _viewState
@@ -17,8 +17,8 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
             is MovieIntent.GetMovies -> getMovies()
             is MovieIntent.GetMovie -> getMovie(intent.id)
             is MovieIntent.CreateMovie -> createMovie(intent.movie)
-            is MovieIntent.UpdateMovie -> updateMovie(intent.id, intent.movie)
-            is MovieIntent.DeleteMovie -> deleteMovie(intent.id)
+            is MovieIntent.UpdateMovie -> updateMovie(intent.movie)
+            is MovieIntent.DeleteMovie -> deleteMovie(intent.movie)
         }
     }
 
@@ -26,12 +26,11 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
         getMovies()
     }
 
-
     private fun getMovies() {
         viewModelScope.launch {
             _viewState.update { it.copy(isLoading = true) }
             try {
-                val movies = movieRepository.getMovies()
+                val movies = repository.getMovies()
                 _viewState.update { it.copy(movies = movies.toMutableList(), isLoading = false, hasError = false) }
             } catch (e: Exception) {
                 _viewState.update { it.copy(isLoading = false, hasError = true) }
@@ -39,10 +38,10 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
         }
     }
 
-    private fun getMovie(id: String) {
+    private fun getMovie(id: Long) {
         viewModelScope.launch {
             try {
-                val movie = movieRepository.getMovie(id)
+                val movie = repository.getMovie(id)
                 // Handle single movie result (e.g., update state or navigate)
             } catch (e: Exception) {
                 _viewState.update { it.copy(hasError = true) }
@@ -53,30 +52,38 @@ class MovieViewModel(private val movieRepository: MovieRepository) : ViewModel()
     private fun createMovie(movie: Movie) {
         viewModelScope.launch {
             try {
-                val createdMovie = movieRepository.createMovie(movie)
-                if (createdMovie.id.isNotEmpty()) getMovies()
+                val isSuccessful = repository.createMovie(movie)
+                if (isSuccessful) {
+                    getMovies()
+                } else {
+                    _viewState.update { it.copy(hasError = true) }
+                }
             } catch (e: Exception) {
                 _viewState.update { it.copy(hasError = true) }
             }
         }
     }
 
-    private fun updateMovie(id: String, movie: Movie) {
+    private fun updateMovie(movie: Movie) {
         viewModelScope.launch {
             try {
-                val updatedMovie = movieRepository.updateMovie(id, movie)
-                if (updatedMovie.id.isNotEmpty()) getMovies()
+                val isSuccessful = repository.updateMovie(movie)
+                if (isSuccessful) {
+                    getMovies()
+                } else {
+                    _viewState.update { it.copy(hasError = true) }
+                }
             } catch (e: Exception) {
                 _viewState.update { it.copy(hasError = true) }
             }
         }
     }
 
-    private fun deleteMovie(id: String) {
+    private fun deleteMovie(movie: Movie) {
         viewModelScope.launch {
             try {
-                val response = movieRepository.deleteMovie(id)
-                if (response.isSuccessful) {
+                val isSuccessful = repository.deleteMovie(movie)
+                if (isSuccessful) {
                     getMovies()
                 } else {
                     _viewState.update { it.copy(hasError = true) }

@@ -1,53 +1,45 @@
 package com.neilmosca.basicandroiddatapersistence
 
-import java.util.UUID
+class MovieRepository (private val movieDao: MovieDao) {
 
-class MovieRepository private constructor() {
-
-    // In-memory list to store movies
-    private val movies = mutableListOf(
-        Movie(id = UUID.randomUUID().toString(), title = "Inception", genre = "Sci-Fi", year = 2010),
-        Movie(id = UUID.randomUUID().toString(), title = "Interstellar", genre = "Sci-Fi", year = 2014),
-        Movie(id = UUID.randomUUID().toString(), title = "The Dark Knight", genre = "Action", year = 2008)
-    )
-
-    fun getMovies(): List<Movie> = movies.toList()
-
-    fun getMovie(id: String): Movie {
-        return movies.find { it.id == id } ?: throw Exception("Movie not found")
-    }
-
-    fun createMovie(movie: Movie): Movie {
-        val newMovie = movie.copy(id = UUID.randomUUID().toString())
-        movies.add(newMovie)
-        return newMovie
-    }
-
-    suspend fun updateMovie(id: String, movie: Movie): Movie {
-        val index = movies.indexOfFirst { it.id == id }
-        if (index != -1) {
-            movies[index] = movie.copy(id = id)
-            return movies[index]
+    suspend fun createMovie(movie: Movie): Boolean {
+        val rowId = movieDao.createMovie(movie = movie)
+        if (rowId != -1L) {
+            return true
         }
-        throw Exception("Movie not found")
+        else {
+            throw Exception("Insertion failed or was ignored due to conflict")
+        }
     }
 
-    suspend fun deleteMovie(id: String): MovieResponse {
-        val removed = movies.removeIf { it.id == id }
-        return MovieResponse(isSuccessful = removed)
+    suspend fun getMovies(): List<Movie> = movieDao.getMovies()
+
+    suspend fun getMovie(id: Long): Movie {
+        val movie = movieDao.getMovie(id = id)
+        if (movie != null ) {
+            return movie
+        }
+        else {
+            throw Exception("Movie not found")
+        }
     }
 
-    // Helper class to match the 'isSuccessful' check in your ViewModel
-    data class MovieResponse(val isSuccessful: Boolean)
+    suspend fun updateMovie(movie: Movie): Boolean {
+        val updatedRows  = movieDao.updateMovie(movie = movie)
+        if (updatedRows > 0) {
+            return true
+        } else {
+            throw Exception("Movie not found")
+        }
+    }
 
-    companion object {
-        private var instance: MovieRepository? = null
-
-        fun create(): MovieRepository {
-            if (instance == null) {
-                instance = MovieRepository()
-            }
-            return instance!!
+    suspend fun deleteMovie(movie: Movie): Boolean {
+        val deletedCount = movieDao.deleteMovie(movie = movie)
+        if (deletedCount > 0) {
+            return true
+        }
+        else {
+            throw Exception("Movie not found")
         }
     }
 }

@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,12 +43,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,10 +59,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val movieRepository = MovieRepository.create()
+        enableEdgeToEdge()
+        // Initialize Database and ViewModel
+        val movieDao = MovieDatabase.getDatabase(application).movieDao()
+        val movieRepository = MovieRepository(movieDao)
         val movieViewModel = MovieViewModel(movieRepository)
 
-        enableEdgeToEdge()
         setContent {
             BasicAndroidDataPersistenceTheme {
                 MovieScreen(viewModel = movieViewModel)
@@ -78,7 +79,7 @@ fun MovieScreen(viewModel: MovieViewModel) {
     val state by viewModel.viewState.collectAsState()
 
     // Pass state and callbacks to the stateless version
-        MovieScreenContent(
+    MovieScreenContent(
         state = state,
         onIntent = { intent -> viewModel.handleIntent(intent) }
     )
@@ -160,7 +161,7 @@ fun MovieScreenContent(
                                     showDialog = true
                                 },
                                 onDelete = {
-                                    onIntent(MovieIntent.DeleteMovie(movie.id))
+                                    onIntent(MovieIntent.DeleteMovie(movie))
                                 }
                             )
                         }
@@ -174,10 +175,11 @@ fun MovieScreenContent(
                 movie = movieToEdit,
                 onDismiss = { showDialog = false },
                 onConfirm = { title, genre, year ->
-                    if (movieToEdit == null) {
+                    if (movieToEdit != null) {
                         onIntent(
-                            MovieIntent.CreateMovie(
+                            MovieIntent.UpdateMovie(
                                 Movie(
+                                    id = movieToEdit!!.id,
                                     title = title,
                                     genre = genre,
                                     year = year
@@ -186,9 +188,8 @@ fun MovieScreenContent(
                         )
                     } else {
                         onIntent(
-                            MovieIntent.UpdateMovie(
-                                movieToEdit!!.id,
-                                movieToEdit!!.copy(
+                            MovieIntent.CreateMovie(
+                                Movie(
                                     title = title,
                                     genre = genre,
                                     year = year
@@ -217,7 +218,7 @@ fun MovieDialog(
 
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     val years = (currentYear downTo 1900).toList()
-    var selectedYear by remember { mutableStateOf(movie?.year ?: currentYear) }
+    var selectedYear by remember { mutableIntStateOf(movie?.year ?: currentYear) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -355,9 +356,9 @@ fun MovieItem(
 @Preview
 fun MovieScreenContentPreview() {
     val mockMovies = listOf(
-        Movie(id = "1", title = "Inception", genre = "Sci-Fi", year = 2010),
-        Movie(id = "2", title = "The Dark Knight", genre = "Action", year = 2008),
-        Movie(id = "3", title = "Interstellar", genre = "Sci-Fi", year = 2014)
+        Movie(id = 1, title = "Inception", genre = "Sci-Fi", year = 2010),
+        Movie(id = 2, title = "The Dark Knight", genre = "Action", year = 2008),
+        Movie(id = 3, title = "Interstellar", genre = "Sci-Fi", year = 2014)
     )
 
     BasicAndroidDataPersistenceTheme() {
