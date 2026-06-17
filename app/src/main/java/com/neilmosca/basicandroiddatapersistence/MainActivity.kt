@@ -59,17 +59,21 @@ import com.neilmosca.basicandroiddatapersistence.ui.theme.BasicAndroidDataPersis
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val movieRepository = MovieRepository.create()
+        val movieViewModel = MovieViewModel(movieRepository)
+
         enableEdgeToEdge()
         setContent {
             BasicAndroidDataPersistenceTheme {
-                MovieScreen()
+                MovieScreen(viewModel = movieViewModel)
             }
         }
     }
 }
 
 @Composable
-fun MovieScreen(viewModel: MovieViewModel = viewModel()) {
+fun MovieScreen(viewModel: MovieViewModel) {
     // Observe state from ViewModel
     val state by viewModel.viewState.collectAsState()
 

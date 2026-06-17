@@ -2,7 +2,7 @@ package com.neilmosca.basicandroiddatapersistence
 
 import java.util.UUID
 
-class MoviesApi private constructor() {
+class MovieRepository private constructor() {
 
     // In-memory list to store movies
     private val movies = mutableListOf(
@@ -41,11 +41,11 @@ class MoviesApi private constructor() {
     data class MovieResponse(val isSuccessful: Boolean)
 
     companion object {
-        private var instance: MoviesApi? = null
+        private var instance: MovieRepository? = null
 
-        fun create(): MoviesApi {
+        fun create(): MovieRepository {
             if (instance == null) {
-                instance = MoviesApi()
+                instance = MovieRepository()
             }
             return instance!!
         }
