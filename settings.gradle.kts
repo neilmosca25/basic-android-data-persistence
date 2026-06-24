@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Basic Android(Data Persistence"
+rootProject.name = "Basic Android Data Persistence"
 include(":app")
  
