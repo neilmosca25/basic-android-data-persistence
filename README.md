@@ -56,18 +56,25 @@ The `realm` branch utilizes the Realm Kotlin SDK, a mobile-first object database
 - **Storage**: Data is persisted in Realm's proprietary database format.
 
 ---
+## Technical Stack
 
-## How to Switch Branches
+UI: Jetpack Compose
+Architecture: ViewModel + StateFlow (MVI/MVVM)
+Database: Room / Realm
+Concurrency: Kotlin Coroutines
 
-To explore a specific implementation, use the following git commands:
+---
+## Setup
+
+To explore a specific implementation,
+
+1. Clone the repository.
+2. Checkout the branch you want to explore, and use the following git commands:
 
 ```bash
 # To see Room implementation
 git checkout room
 
-# To see Realm implementation
+# or to see Realm implementation
 git checkout realm
-
-# To go back to the base version
-git checkout main
 ```
